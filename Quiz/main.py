@@ -2,13 +2,16 @@ import threading
 from socket import socket, AF_INET, SOCK_DGRAM
 from _thread import *
 
-def servidor(servidor_socket, usuarios_conectados, limite_usuarios):
+def servidor(servidor_socket, jogadores_conectados, limite_usuarios):
     while True:
-        if len(usuarios_conectados) < limite_usuarios:
+        if len(jogadores_conectados) >= limite_usuarios:
+            servidor_socket.setblocking(False)
+
+        if servidor_socket.getblocking():
             mensagem, endereco = servidor_socket.recvfrom(1024)
-            usuarios_conectados.append(f'{endereco[0]}:{endereco[1]}')
+            jogadores_conectados.append(endereco)
             print(f'[Info] {endereco[0]}:{endereco[1]} entrou na competição')
-            print(f'[Info] {len(usuarios_conectados)} usuários conectados')
+            print(f'[Info] {len(jogadores_conectados)} usuários conectados')
 
             msg = str(mensagem.decode())
 
@@ -22,9 +25,8 @@ def servidor(servidor_socket, usuarios_conectados, limite_usuarios):
             resp = 'Está na competição'
             servidor_socket.sendto(resp.encode(), endereco)
         else:
-            resp = 'Não é possivel entrar na competição'
-            mensagem, endereco = servidor_socket.recvfrom(1024)
-            servidor_socket.sendto(resp.encode(), endereco)
+            checkar_jogadores(jogadores_conectados, servidor_socket)
+
 
 def iniciar():
     print('')
@@ -37,6 +39,13 @@ def finalizar():
 def desligar():
     print('')
     print('[Info] Servidor sendo desligado')
+
+def checkar_jogadores(jogadores_conectados, servidor_socket):
+    mensagem_jogador = '[Info] Verificando conexão com o jogador..'
+    for ip_jogador in jogadores_conectados:
+        print(servidor_socket.connect(ip_jogador))
+
+
 
 def listar_comandos():
     print('')
@@ -67,7 +76,7 @@ def main():
     ip = '127.0.0.1'
     porta = 8000
     limite_usuarios = 2
-    usuarios_conectados = []
+    jogadores_conectados = []
 
     servidor_socket = socket(AF_INET, SOCK_DGRAM)
     servidor_socket.bind((ip, porta))
@@ -78,7 +87,7 @@ def main():
     print(f"Desenvolvido por: Ismael Benjamim e Tiago Bello")
     print(f"==============================================")
 
-    iniciar_servidor = threading.Thread(target=servidor, args=(servidor_socket, usuarios_conectados, limite_usuarios))
+    iniciar_servidor = threading.Thread(target=servidor, args=(servidor_socket, jogadores_conectados, limite_usuarios))
     iniciar_servidor.start()
 
     executar_comando = threading.Thread(target=executar_comandos, args=[])
