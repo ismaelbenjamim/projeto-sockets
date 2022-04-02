@@ -6,7 +6,7 @@ class Client:
     def __init__(self, servidor):
         self.cliente_socket = None
         self.servidor = servidor
-
+        
     def iniciar_cliente(self):
         self.cliente_socket = socket(AF_INET, SOCK_DGRAM)
 
