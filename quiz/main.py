@@ -13,8 +13,14 @@ def main():
             self.servidor_socket = None
             self.servidor_lotado = False
             self.quiz_iniciado = False
+            self.temas = ['atualidades', 'entreterimento', 'historia']
             self.quiz_configurado = False
             self.prefixo = '[Solu Quiz]'
+
+        def response(self, codigo_msg):
+            codigos = {
+                "USUARIO_ATIVO": ""
+            }
 
         def iniciar_servidor(self):
             self.servidor_socket = socket(AF_INET, SOCK_DGRAM)
@@ -41,20 +47,20 @@ def main():
         def executar_comandos(self):
             print(self.prefixo, 'Caso queira saber a lista de comandos, digite: /comandos')
             while True:
-                comando = input('Digite um comando para ser executado: ')
+                comando = input('Digite um comando para ser executado: ' + '\n')
                 comando_params = comando.split(' ')
                 if comando_params[0] == '/configurar':
                     try:
                         comando_params[1] = int(comando_params[1])
-                        comando_params[2] = int(comando_params[2])
+                        comando_params[2] = str(comando_params[2])
                         self.configurar(comando_params.__getitem__(1), comando_params.__getitem__(2))
                         continue
                     except:
-                        print(self.prefixo, 'O limite de jogadores e o nível do quiz precisam ser um valor numérico.')
-                        print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 1'+ '\n')
+                        print(self.prefixo, 'O limite de jogadores precisa ser um valor numérico e o tema do quiz uma string')
+                        print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 atualidades' + '\n')
                 if not self.quiz_configurado:
                     print(self.prefixo, 'É necessário configurar o quiz inicialmente.')
-                    print(self.prefixo, 'Use o comando: /configurar [limite de jogadores] [nível do quiz].' + '\n')
+                    print(self.prefixo, 'Use o comando: /configurar [limite de jogadores] [tema do quiz].' + '\n')
                 else:
                     if comando == '/iniciar':
                         self.iniciar()
@@ -70,14 +76,14 @@ def main():
                         print(self.prefixo, 'Comando não reconhecido, tente novamente.' + '\n')
 
 
-        def configurar(self, jogadores_limite, nivel_quiz):
-            if not jogadores_limite or not nivel_quiz:
-                print(self.prefixo, 'É necessário informar o limite de jogadores e o nível do quiz.')
-                print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 1')
+        def configurar(self, jogadores_limite, tema):
+            if not jogadores_limite or not tema:
+                print(self.prefixo, 'É necessário informar o limite de jogadores e o tema do quiz.')
+                print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 atualidades')
             if jogadores_limite < 2:
                 print(self.prefixo, 'O limite de jogadores precisa ser maior que 1')
-            if nivel_quiz < 1 or nivel_quiz > 3:
-                print(self.prefixo, 'O nível do quiz precisa ser entre 1 e 3')
+            if tema not in self.temas:
+                print(self.prefixo, 'O tema do quiz precisa ser atualidades, entreterimento ou historia')
             self.jogadores_limite = jogadores_limite
             self.quiz_configurado = True
             self.servidor_socket.setblocking(True)

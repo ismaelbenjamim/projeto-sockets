@@ -9,12 +9,12 @@ def response_servidor(cliente_socket, servidor):
         if mensagem_servidor == '[Solu Quiz] Jogador conectado?':
             request_servidor(cliente_socket, servidor, '[Solu Quiz] Ativo')
 
-        print(mensagem_servidor)
+        print('\n' + mensagem_servidor)
 
 def request_servidor(cliente_socket, servidor, mensagem_envio=None):
     if mensagem_envio:
         if mensagem_envio == 'sair':
-            print('[Solu Quiz] Cliente encerrando!')
+            print('\n[Solu Quiz] Cliente encerrando!')
             cliente_socket.close()
 
         mensagem_codificada = mensagem_envio.encode()
