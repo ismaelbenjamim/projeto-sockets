@@ -6,15 +6,15 @@ def response_servidor(cliente_socket, servidor):
         msg, endereco = cliente_socket.recvfrom(1024)
         mensagem_servidor = msg.decode()
 
-        if mensagem_servidor == '[Info] Jogador conectado?':
-            request_servidor(cliente_socket, servidor, '[Info] Ativo')
+        if mensagem_servidor == '[Solu Quiz] Jogador conectado?':
+            request_servidor(cliente_socket, servidor, '[Solu Quiz] Ativo')
 
         print(mensagem_servidor)
 
 def request_servidor(cliente_socket, servidor, mensagem_envio=None):
     if mensagem_envio:
         if mensagem_envio == 'sair':
-            print('[Info] Cliente encerrando!')
+            print('[Solu Quiz] Cliente encerrando!')
             cliente_socket.close()
 
         mensagem_codificada = mensagem_envio.encode()
@@ -29,7 +29,7 @@ def enviar_mensagem(cliente_socket, servidor):
 def main():
     servidor = ('127.0.0.1', 8000)
     cliente_socket = socket(AF_INET, SOCK_DGRAM)
-    print("[Info] Tentando conectar...")
+    print("[Solu Quiz] Tentando conectar...")
 
     nome = input("\nDigite seu nome: ")
     mensagem_nome = nome.encode()
