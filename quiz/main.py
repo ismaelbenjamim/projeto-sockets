@@ -80,16 +80,17 @@ def main():
             if not jogadores_limite or not tema:
                 print(self.prefixo, 'É necessário informar o limite de jogadores e o tema do quiz.')
                 print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 atualidades')
-            if jogadores_limite < 2:
+            elif jogadores_limite < 2:
                 print(self.prefixo, 'O limite de jogadores precisa ser maior que 1')
-            if tema not in self.temas:
+            elif tema not in self.temas:
                 print(self.prefixo, 'O tema do quiz precisa ser atualidades, entreterimento ou historia')
-            self.jogadores_limite = jogadores_limite
-            self.quiz_configurado = True
-            self.servidor_socket.setblocking(True)
-            print(self.prefixo, 'Quiz configurado com sucesso e está pronto para iniciar.' + '\n')
-            configurar_quiz = threading.Thread(target=self.configurar_quiz, args=[])
-            configurar_quiz.start()
+            else:
+                self.jogadores_limite = jogadores_limite
+                self.quiz_configurado = True
+                self.servidor_socket.setblocking(True)
+                print(self.prefixo, 'Quiz configurado com sucesso e está pronto para iniciar.' + '\n')
+                configurar_quiz = threading.Thread(target=self.configurar_quiz, args=[])
+                configurar_quiz.start()
 
         def iniciar(self):
             print(self.prefixo, 'Competição sendo iniciada' + '\n')
