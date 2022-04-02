@@ -1,6 +1,7 @@
 import threading
 import time
 from socket import socket, AF_INET, SOCK_DGRAM
+from _thread import *
 
 def main():
 
@@ -131,7 +132,7 @@ def main():
             if not self.servidor_lotado:
                 self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente}
                 print(self.prefixo, f'{endereco[0]}:{endereco[1]} entrou na competição')
-                print(self.prefixo, f'{len(self.jogadores_conectados)} usuários conectados')
+                print(self.prefixo, f'[Info] {len(self.jogadores_conectados)} usuários conectados')
                 print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - Nome do jogador: "{mensagem_cliente}"' + '\n')
             else:
                 resposta_servidor = f'{self.prefixo} Limite de jogadores alcançado!'
