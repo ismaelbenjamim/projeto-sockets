@@ -5,14 +5,15 @@ from socket import socket, AF_INET, SOCK_DGRAM
 def main():
 
     class Servidor:
-        def __init__(self, ip, porta, jogadores_limite):
+        def __init__(self, ip, porta):
             self.ip = ip
             self.porta = porta
-            self.jogadores_limite = jogadores_limite
+            self.jogadores_limite = None
             self.jogadores_conectados = {}
             self.servidor_socket = None
             self.servidor_lotado = False
             self.quiz_iniciado = False
+            self.quiz_configurado = False
             self.prefixo = '[Solu Quiz]'
 
         def iniciar_servidor(self):
@@ -30,6 +31,7 @@ def main():
 
         def listar_comandos(self):
             print(f"\n======== {self.prefixo} Lista de comandos ========")
+            print("-> /configurar (configura as informações iniciais do quiz)")
             print("-> /iniciar (inicia a competição)")
             print("-> /finalizar (finaliza a competição)")
             print("-> /desligar (desliga o servidor)")
@@ -40,25 +42,51 @@ def main():
             print(self.prefixo, 'Caso queira saber a lista de comandos, digite: /comandos')
             while True:
                 comando = input('Digite um comando para ser executado: ')
-                if comando == '/iniciar':
-                    self.iniciar()
-                elif comando == '/desligar':
-                    self.desligar()
-                elif comando == '/finalizar':
-                    self.finalizar()
-                elif comando == '/status':
-                    self.status()
-                elif comando == '/comandos':
-                    self.listar_comandos()
+                comando_params = comando.split(' ')
+                if comando_params[0] == '/configurar':
+                    try:
+                        comando_params[1] = int(comando_params[1])
+                        comando_params[2] = int(comando_params[2])
+                        self.configurar(comando_params.__getitem__(1), comando_params.__getitem__(2))
+                        continue
+                    except:
+                        print(self.prefixo, 'O limite de jogadores e o nível do quiz precisam ser um valor numérico.')
+                        print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 1'+ '\n')
+                if not self.quiz_configurado:
+                    print(self.prefixo, 'É necessário configurar o quiz inicialmente.')
+                    print(self.prefixo, 'Use o comando: /configurar [limite de jogadores] [nível do quiz].' + '\n')
                 else:
-                    print(self.prefixo, 'Comando não reconhecido, tente novamente.' + '\n')
+                    if comando == '/iniciar':
+                        self.iniciar()
+                    elif comando == '/desligar':
+                        self.desligar()
+                    elif comando == '/finalizar':
+                        self.finalizar()
+                    elif comando == '/status':
+                        self.status()
+                    elif comando == '/comandos':
+                        self.listar_comandos()
+                    else:
+                        print(self.prefixo, 'Comando não reconhecido, tente novamente.' + '\n')
 
+
+        def configurar(self, jogadores_limite, nivel_quiz):
+            if not jogadores_limite or not nivel_quiz:
+                print(self.prefixo, 'É necessário informar o limite de jogadores e o nível do quiz.')
+                print(self.prefixo, 'Use o comando como no exemplo: /configurar 5 1')
+            if jogadores_limite < 2:
+                print(self.prefixo, 'O limite de jogadores precisa ser maior que 1')
+            if nivel_quiz < 1 or nivel_quiz > 3:
+                print(self.prefixo, 'O nível do quiz precisa ser entre 1 e 3')
+            self.jogadores_limite = jogadores_limite
+            self.quiz_configurado = True
+            self.servidor_socket.setblocking(True)
+            print(self.prefixo, 'Quiz configurado com sucesso e está pronto para iniciar.' + '\n')
+            configurar_quiz = threading.Thread(target=self.configurar_quiz, args=[])
+            configurar_quiz.start()
 
         def iniciar(self):
             print(self.prefixo, 'Competição sendo iniciada' + '\n')
-            self.servidor_socket.setblocking(True)
-            iniciar_quiz = threading.Thread(target=self.iniciar_quiz(), args=[])
-            iniciar_quiz.start()
 
         def finalizar(self):
             print(self.prefixo, 'Competição sendo finalizada' + '\n')
@@ -70,7 +98,7 @@ def main():
             print(self.prefixo, f'{len(self.jogadores_conectados)}/{self.jogadores_limite} de jogadores conectados' + '\n')
 
 
-        def iniciar_quiz(self):
+        def configurar_quiz(self):
             while True:
                 if len(self.jogadores_conectados) >= self.jogadores_limite:
                     self.servidor_lotado = True
@@ -141,7 +169,7 @@ def main():
                 jogador["status"] = False
 
 
-    servidor = Servidor('127.0.0.1', 8000, 2)
+    servidor = Servidor('127.0.0.1', 8000)
     servidor.iniciar_servidor()
 
 
