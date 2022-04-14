@@ -1,5 +1,6 @@
 import threading
 import time
+import json
 from socket import socket, AF_INET, SOCK_DGRAM
 
 def main():
@@ -50,7 +51,7 @@ def main():
         def executar_comandos(self):
             print(self.prefixo, 'Caso queira saber a lista de comandos, digite: /comandos')
             while True:
-                comando = input(self.prefixo, 'Digite um comando para ser executado: ' + '\n')
+                comando = input(self.prefixo + ' Digite um comando para ser executado: ' + '\n')
                 comando_params = comando.split(' ')
                 if comando_params[0] == '/configurar':
                     if len(comando_params) == 1:
@@ -106,6 +107,7 @@ def main():
 
         def iniciar(self):
             print(self.prefixo, 'Competição sendo iniciada' + '\n')
+            self.quiz()
 
         def finalizar(self):
             print(self.prefixo, 'Competição sendo finalizada' + '\n')
@@ -116,6 +118,20 @@ def main():
         def status(self):
             print(self.prefixo, f'{len(self.jogadores_conectados)}/{self.jogadores_limite} de jogadores conectados' + '\n')
 
+        def get_questao(self, pergunta):
+            pass
+
+        def quiz(self):
+            perguntas = []
+            if self.quiz_tema:
+                perguntas_arquivo = open(f'quiz/perguntas/{self.quiz_tema}.json', 'r')
+                perguntas = json.load(perguntas_arquivo)
+
+            self.get_questao(perguntas)
+            mensagem_jogador = f'{self.prefixo} Jogador conectado?'
+            self.servidor_socket.sendall(mensagem_jogador.encode())
+
+            return perguntas
 
         def configurar_quiz(self):
             while True:
@@ -190,7 +206,6 @@ def main():
 
     servidor = Servidor('127.0.0.1', 8000)
     servidor.iniciar_servidor()
-
 
 if __name__ == '__main__':
     main()
