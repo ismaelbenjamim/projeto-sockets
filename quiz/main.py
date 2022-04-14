@@ -162,8 +162,13 @@ def main():
             mensagem, endereco = self.servidor_socket.recvfrom(1024)
 
         def get_questao_respondida(self, jogador):
-            if not self.quiz_pergunta_respondida:
-                self.quiz_pergunta_respondida = True
+            self.quiz_pergunta_respondida = True
+            self.jogadores_conectados[jogador]['pontos'] += 5
+            jogador = self.jogadores_conectados[jogador]
+            mensagem = f"{jogador['nome']} respondeu primeiro e obteu +5 pontos!"
+            for ip, jogador in self.jogadores_conectados.items():
+                self.servidor_socket.sendto(mensagem.encode(), jogador['ip'])
+
 
         def get_questao(self):
             while self.quiz_contador <= 5:
@@ -171,9 +176,14 @@ def main():
                     return randrange(1, 5)
                 valor = valor_aleatorio()
                 self.quiz_pergunta_atual = self.quiz_perguntas[valor]
-                self.enviar_mensagem(self.quiz_pergunta_atual['pergunta'])
-                self.aguardar_resposta()
-                #timetou
+                self.enviar_mensagem(self.quiz_pergunta_atual[0])
+
+                print('Aguardando resposta')
+                while not self.quiz_pergunta_respondida:
+                    pass
+
+                self.quiz_pergunta_respondida = False
+                #self.aguardar_resposta()
                 self.quiz_contador += 1
 
             self.quiz_contador = 1
@@ -183,8 +193,11 @@ def main():
             self.quiz_iniciado = True
             perguntas = []
             if self.quiz_tema:
-                perguntas_arquivo = open(f'quiz/perguntas/{self.quiz_tema}.json', 'r')
-                self.quiz_perguntas = json.load(perguntas_arquivo)
+                perguntas_arquivo = open(f'quiz/perguntas/{self.quiz_tema}', 'rb')
+                for linha in perguntas_arquivo.read().splitlines():
+                    pergunta = str(linha.decode()).split('=')
+                    perguntas.append((pergunta[0], pergunta[1]))
+                self.quiz_perguntas = perguntas
 
             get_questao = threading.Thread(target=self.get_questao, args=[])
             get_questao.start()
@@ -207,10 +220,8 @@ def main():
                     if mensagem_cliente == f'{self.prefixo} Ativo':
                         self.jogadores_conectados[endereco_str]['status'] = True
                         print(self.prefixo, f'{endereco_str} atualizado com o status: {self.jogadores_conectados[endereco_str]["status"]}' + '\n')
-                    if self.quiz_iniciado and mensagem_cliente == self.quiz_pergunta_atual['resposta']:
+                    if self.quiz_iniciado and mensagem_cliente == self.quiz_pergunta_atual[1]:
                         self.get_questao_respondida(endereco_str)
-
-
 
                     print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - "{mensagem_cliente}"' + '\n')
 
@@ -220,7 +231,7 @@ def main():
                             print(self.prefixo, 'Encerrando servidor.' + '\n')
                             break
 
-                        self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente}
+                        self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente, "pontos": 0}
                         print(self.prefixo, f'{endereco[0]}:{endereco[1]} entrou na competição')
                         print(self.prefixo, f'{len(self.jogadores_conectados)} usuários conectados')
                         print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - Nome do jogador: "{mensagem_cliente}"' + '\n')
@@ -250,7 +261,7 @@ def main():
                 self.servidor_lotado = False
 
             if not self.servidor_lotado:
-                self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente}
+                self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente, "pontos": 0}
                 print(self.prefixo, f'{endereco[0]}:{endereco[1]} entrou na competição')
                 print(self.prefixo, f'{len(self.jogadores_conectados)} usuários conectados')
                 print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - Nome do jogador: "{mensagem_cliente}"' + '\n')

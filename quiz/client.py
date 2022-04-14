@@ -18,7 +18,7 @@ class Client:
             if mensagem_servidor == '[Solu Quiz] Jogador conectado?':
                 self.request_servidor('[Solu Quiz] Ativo')
 
-            print(mensagem_servidor)
+            print(f"\n{mensagem_servidor}")
 
     def request_servidor(self, mensagem_envio=None):
         if mensagem_envio:
