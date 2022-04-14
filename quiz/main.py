@@ -173,6 +173,7 @@ def main():
                 self.quiz_pergunta_atual = self.quiz_perguntas[valor]
                 self.enviar_mensagem(self.quiz_pergunta_atual['pergunta'])
                 self.aguardar_resposta()
+                #timetou
                 self.quiz_contador += 1
 
             self.quiz_contador = 1
