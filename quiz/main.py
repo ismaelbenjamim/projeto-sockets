@@ -1,7 +1,36 @@
 import threading
 import time
 import json
+from random import randrange
 from socket import socket, AF_INET, SOCK_DGRAM
+
+"""
+- Deverá ser desenvolvido um jogo com competições online de perguntas e respostas;
+- Um protocolo da camada de aplicação deverá ser desenvolvido e especificado no relatório;
+o Deverá ter pelo menos uma mensagem de requisição e pelo menos uma mensagem de
+resposta;
+- O protocolo de transporte UDP deverá ser utilizado;
+- Um servidor UDP deverá gerenciar as competições;
+- Até 5 clientes UDP poderão participar de uma competição;
+- Após a competição ser iniciada, não deverá ser permitido o ingresso de novos participantes;
+- Cada competição terá 5 rodadas de perguntas e respostas;
+- O servidor deverá ter um arquivo de texto contendo pelo menos 20 tuplas de perguntas e
+respostas;
+    - As respostas deverão ser compostas por uma única palavra, com caracteres minúsculos
+    - O tema do Quiz ficará a critério da equipe
+- O servidor irá escolher aleatoriamente uma tupla de pergunta/resposta que será utilizada na
+rodada;
+- Uma mesma competição não poderá ter duas tuplas repetidas;
+- Cada rodada será encerrada quando algum participante acertar a resposta ou atingir uma
+duração máxima de 10 segundos;
+- Pontuação de cada rodada:
+    - Cada resposta errada: -5 pontos
+    - Sem resposta: -1 ponto
+    - Resposta correta: 25 pontos
+- Após uma competição ser encerrada, um ranking com a pontuação é divulgado e uma nova
+competição poderá ser iniciada.
+"""
+
 
 def main():
 
@@ -18,6 +47,10 @@ def main():
             self.quiz_tema = None
             self.quiz_configurado = False
             self.prefixo = '[Solu Quiz]'
+            self.quiz_contador = 1
+            self.quiz_perguntas = None
+            self.quiz_pergunta_atual = None
+            self.quiz_pergunta_respondida = False
 
         def response(self, codigo_msg):
             codigos = {
@@ -118,20 +151,44 @@ def main():
         def status(self):
             print(self.prefixo, f'{len(self.jogadores_conectados)}/{self.jogadores_limite} de jogadores conectados' + '\n')
 
-        def get_questao(self, pergunta):
+        def enviar_mensagem(self, mensagem, endereco=None):
+            if not endereco:
+                for ip, jogador in self.jogadores_conectados.items():
+                    self.servidor_socket.sendto(mensagem.encode(), jogador['ip'])
+            else:
+                self.servidor_socket.sendto(mensagem.encode(), endereco)
+
+        def aguardar_resposta(self):
+            mensagem, endereco = self.servidor_socket.recvfrom(1024)
+
+        def get_questao_respondida(self, jogador):
+            if not self.quiz_pergunta_respondida:
+                self.quiz_pergunta_respondida = True
+
+        def get_questao(self):
+            while self.quiz_contador <= 5:
+                def valor_aleatorio():
+                    return randrange(1, 5)
+                valor = valor_aleatorio()
+                self.quiz_pergunta_atual = self.quiz_perguntas[valor]
+                self.enviar_mensagem(self.quiz_pergunta_atual['pergunta'])
+                self.aguardar_resposta()
+                #timetou
+                self.quiz_contador += 1
+
+            self.quiz_contador = 1
             pass
 
         def quiz(self):
+            self.quiz_iniciado = True
             perguntas = []
             if self.quiz_tema:
                 perguntas_arquivo = open(f'quiz/perguntas/{self.quiz_tema}.json', 'r')
-                perguntas = json.load(perguntas_arquivo)
+                self.quiz_perguntas = json.load(perguntas_arquivo)
 
-            self.get_questao(perguntas)
-            mensagem_jogador = f'{self.prefixo} Jogador conectado?'
-            self.servidor_socket.sendall(mensagem_jogador.encode())
-
-            return perguntas
+            get_questao = threading.Thread(target=self.get_questao, args=[])
+            get_questao.start()
+            print('Perguntas iniciadas')
 
         def configurar_quiz(self):
             while True:
@@ -147,12 +204,13 @@ def main():
                 mensagem_cliente = str(mensagem.decode())
 
                 if self.jogadores_conectados.get(endereco_str):
-                    if mensagem_cliente == 'desligar':
-                        print(self.prefixo, 'Encerrando servidor.' + '\n')
-                        break
-                    elif mensagem_cliente == f'{self.prefixo} Ativo':
+                    if mensagem_cliente == f'{self.prefixo} Ativo':
                         self.jogadores_conectados[endereco_str]['status'] = True
                         print(self.prefixo, f'{endereco_str} atualizado com o status: {self.jogadores_conectados[endereco_str]["status"]}' + '\n')
+                    if self.quiz_iniciado and mensagem_cliente == self.quiz_pergunta_atual['resposta']:
+                        self.get_questao_respondida(endereco_str)
+
+
 
                     print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - "{mensagem_cliente}"' + '\n')
 
