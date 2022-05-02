@@ -1,12 +1,8 @@
-import logging
 import os
 import threading
-import subprocess
-import time
 import urllib.parse
 from datetime import datetime
 from socket import socket, AF_INET, SOCK_STREAM
-from time import gmtime
 
 
 class Server:
@@ -56,9 +52,11 @@ class Server:
             return None
 
         data = str(client.decode()).split(' ')
+        http_type = str(data[2]).split("\n")[0]
         response = {
             "path": data[1],
-            "method": data[0]
+            "method": data[0],
+            "http_type": http_type
         }
         return response
 
@@ -82,7 +80,6 @@ class Server:
         try:
             file_name = urllib.parse.unquote(file_name)
             file = open(file_name, 'rb')
-            print('teste')
             body = file.read()
             file.close()
             status = self.get_status_code(200)
@@ -90,23 +87,21 @@ class Server:
             mimetype = self.get_mime_type(file_path)
             header += 'Content-Type: ' + str(mimetype) + '\n\n'
             return {"header": header, "body": body}
-        except Exception as e:
-            print(e)
+        except:
             url_decode = urllib.parse.unquote(file_name)
             return 400 if "%" or "{" in url_decode else 404
 
     def convert_bytes_to_kb(self, size_in_bytes):
         return size_in_bytes / 1024
 
-    def get_response(self, file_path, error_400=None):
-        if error_400:
-            file = open(f'400.html', 'rb')
+    def get_response(self, file_path, error=None):
+        if error == 505:
+            file = open(f'505.html', 'rb')
             body = file.read()
             file.close()
-            status = self.get_status_code(400)
+            status = self.get_status_code(505)
         else:
             path_exists = os.path.exists(file_path[1:])
-            print(path_exists)
             if path_exists:
                 isdir = os.path.isdir(file_path[1:])
                 if not "/" == file_path[-1]:
@@ -140,10 +135,16 @@ class Server:
                 file.close()
                 status = self.get_status_code(200)
             else:
-                file = open(f'404.html', 'rb')
-                body = file.read()
-                file.close()
-                status = self.get_status_code(404)
+                if error == 400:
+                    file = open(f'400.html', 'rb')
+                    body = file.read()
+                    file.close()
+                    status = self.get_status_code(400)
+                else:
+                    file = open(f'404.html', 'rb')
+                    body = file.read()
+                    file.close()
+                    status = self.get_status_code(404)
         response = {}
         response['header'] = f'HTTP/1.1 {status}\n\n'
         response['body'] = body
@@ -176,14 +177,13 @@ class Server:
             file_name = file_path.lstrip('/')
             file_name = f'index.html' if file_name == '' else file_name
 
-            print(file_path)
-            print(file_name)
-            response = self.get_file(f"{file_name}", file_path)
+            if not request['http_type'] != "HTTP/1.1":
+                response = self.get_response(f"{file_path}", 505)
+            else:
+                response = self.get_file(f"{file_name}", file_path)
 
-            if response == 400 or response == 404:
-                error_400 = True if response == 400 else False
-                print(f"{file_path}")
-                response = self.get_response(f"{file_path}", error_400)
+                if response == 400 or response == 404:
+                    response = self.get_response(f"{file_path}", response)
 
             client.send(response['header'].encode('utf-8') + response['body'])
             break
