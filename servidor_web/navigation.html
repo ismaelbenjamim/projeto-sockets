@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Solu WebApp - Projeto Sockets TCP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /*
 VIEW IN FULL SCREEN MODE
@@ -149,8 +150,6 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
             background-size: cover;
             background-position: left top;
             height: 100%;
-            /*overflow: hidden;*/
-
         }
 
         .custom-navbar {
@@ -221,7 +220,7 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
 
         .btn-go-home {
             position: relative;
-            z-index: 200;
+            /*z-index: 200;*/
             margin: 15px auto;
             width: 100px;
             padding: 10px 15px;
@@ -233,7 +232,7 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
             text-align: center;
             text-decoration: none;
             letter-spacing: 2px;
-            font-size: 12px;
+            font-size: 11px;
 
             -webkit-transition: all 0.3s ease-in;
             -moz-transition: all 0.3s ease-in;
@@ -244,25 +243,24 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
 
         .btn-go-home:hover {
             background-color: #FFCB39;
-            color: black;
-            font-weight: bold;
+            color: #fff;
             transform: scale(1.05);
             box-shadow: 0px 20px 20px rgba(0, 0, 0, 0.1);
         }
 
         .central-body {
             /*    width: 100%;*/
-            padding: 6% 5% 10% 5%;
+            padding: 2% 5% 10% 5%;
             text-align: center;
         }
 
         .objects img {
-            z-index: 90;
+            /*z-index: 90;*/
             pointer-events: none;
         }
 
         .object_rocket {
-            z-index: 95;
+            /*z-index: 95;*/
             position: absolute;
             transform: translateX(-50px);
             top: 75%;
@@ -274,7 +272,7 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
             position: absolute;
             top: 20%;
             left: 15%;
-            z-index: 90;
+            /*z-index: 90;*/
             /*    animation: spin-earth 100s infinite linear both;*/
         }
 
@@ -297,7 +295,7 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
         }
 
         .box_astronaut {
-            z-index: 110 !important;
+            /*z-index: 110 !important;*/
             position: absolute;
             top: 60%;
             right: 20%;
@@ -379,6 +377,18 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
                 padding-top: 25%;
             }
         }
+
+        table, td, th {
+            border: 1px solid;
+            border-color: #ffcb39;
+            line-height: 30px;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
     </style>
 </head>
 <body>
@@ -394,30 +404,27 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
 <div class="stars">
     <div class="custom-navbar">
         <div class="brand-logo">
-            <p style="color: white; font-size: 24px; font-weight: 500; letter-spacing: 6px"><span style="color: #FFCB39">SOLU</span> WEBAPP</p>
+            <p style="color: white; font-size: 24px; font-weight: 500; letter-spacing: 6px"><span
+                    style="color: #FFCB39">SOLU</span> WEBAPP</p>
         </div>
     </div>
     <div class="central-body">
-        <p style="color: white; font-size: 140px; font-weight: normal; margin: 0; padding: 0;">Olá, bem vindo!</p>
-        <p style="color: white; font-size: 24px; font-weight: bolder; margin: 0; padding-bottom: 30px;">Este servidor web foi desenvolvido com Sockets TCP.</p>
-        <span>
-            <a href="/" class="btn-go-home" style="display: inline; background-color: #FFCB39; color: black; font-weight: bold; font-size: 12px; margin-right: 10px">
-                Enviar arquivo
-            </a>
-            <a href="arquivos/" class="btn-go-home" style="display: inline;">
-                Ir para pasta de arquivos
-            </a>
-        </span>
+        <h1 style="color: white; margin: 0; padding-bottom: 20px;">Index of {{ file_path }}</h1>
+        <table>
+            <tr>
+                <th colspan="4" style="text-align: left; font-weight: normal"><a href="{{ file_path_back }}" style="text-decoration: inherit; color: white; padding-left: 20px;"><i class="fa-solid fa-arrow-rotate-left" style="padding-right: 10px"></i> Parent Directory</a></th>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <th>Last modified</th>
+                <th>Size</th>
+                <th>Description</th>
+            </tr>
+            {{ files }}
+        </table>
     </div>
     <div class="objects">
         <img class="object_rocket" src="http://salehriaz.com/404Page/img/rocket.svg" width="40px">
-        <div class="earth-moon">
-            <img class="object_earth" src="http://salehriaz.com/404Page/img/earth.svg" width="100px">
-            <img class="object_moon" src="http://salehriaz.com/404Page/img/moon.svg" width="80px">
-        </div>
-        <div class="box_astronaut">
-            <img class="object_astronaut" src="http://salehriaz.com/404Page/img/astronaut.svg" width="140px">
-        </div>
     </div>
     <div class="glowing_stars">
         <div class="star"></div>
