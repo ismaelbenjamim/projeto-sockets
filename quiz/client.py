@@ -6,33 +6,39 @@ class Client:
     def __init__(self, servidor):
         self.cliente_socket = None
         self.servidor = servidor
-        
+        self.status = True
+
     def iniciar_cliente(self):
         self.cliente_socket = socket(AF_INET, SOCK_DGRAM)
 
     def response_servidor(self):
-        while True:
-            msg, endereco = self.cliente_socket.recvfrom(1024)
-            mensagem_servidor = msg.decode()
+        while self.status:
+            try:
+                msg, endereco = self.cliente_socket.recvfrom(1024)
+                mensagem_servidor = msg.decode()
 
-            if mensagem_servidor == '[Solu Quiz] Jogador conectado?':
-                self.request_servidor('[Solu Quiz] Ativo')
+                if mensagem_servidor == '[Solu Quiz] Jogador conectado?':
+                    self.request_servidor('[Solu Quiz] Ativo')
 
-            print(f"\n{mensagem_servidor}")
+                print(f"\n{mensagem_servidor}")
+            except:
+                pass
 
     def request_servidor(self, mensagem_envio=None):
         if mensagem_envio:
-            if mensagem_envio == 'sair':
-                print('[Solu Quiz] Cliente encerrando!')
-                self.cliente_socket.close()
-
             mensagem_codificada = mensagem_envio.encode()
             self.cliente_socket.sendto(mensagem_codificada, self.servidor)
 
     def enviar_mensagem(self):
-        while True:
+        while self.status:
             mensagem_envio = input("\nDigite sua mensagem: ")
-            self.request_servidor(mensagem_envio)
+            if mensagem_envio == '/sair':
+                self.status = False
+                self.request_servidor('[Solu Quiz] Sair')
+                print('[Solu Quiz] Cliente encerrando! \n')
+                self.cliente_socket.close()
+            else:
+                self.request_servidor(mensagem_envio)
 
 
 def main():

@@ -1,6 +1,5 @@
 import threading
 import time
-import json
 from random import randrange
 from socket import socket, AF_INET, SOCK_DGRAM
 
@@ -43,7 +42,7 @@ def main():
             self.servidor_socket = None
             self.servidor_lotado = False
             self.quiz_iniciado = False
-            self.temas = ['atualidades', 'entreterimento', 'historia']
+            self.temas = ['atualidades', 'entreterimento']
             self.quiz_tema = None
             self.quiz_configurado = False
             self.prefixo = '[Solu Quiz]'
@@ -51,6 +50,7 @@ def main():
             self.quiz_perguntas = None
             self.quiz_pergunta_atual = None
             self.quiz_pergunta_respondida = False
+            self.quiz_jogadores_respoderam = []
 
         def response(self, codigo_msg):
             codigos = {
@@ -88,9 +88,7 @@ def main():
                 comando_params = comando.split(' ')
                 if comando_params[0] == '/configurar':
                     if len(comando_params) == 1:
-                        comando_params.append(2)
-                        comando_params.append('atualidades')
-                        self.configurar(comando_params[1], comando_params[2])
+                        self.configurar(5, 'atualidades')
                         continue
                     else:
                         try:
@@ -161,33 +159,79 @@ def main():
         def aguardar_resposta(self):
             mensagem, endereco = self.servidor_socket.recvfrom(1024)
 
-        def get_questao_respondida(self, jogador):
-            self.quiz_pergunta_respondida = True
-            self.jogadores_conectados[jogador]['pontos'] += 5
-            jogador = self.jogadores_conectados[jogador]
-            mensagem = f"{jogador['nome']} respondeu primeiro e obteu +5 pontos!"
-            for ip, jogador in self.jogadores_conectados.items():
+        def get_questao_respondida(self, endereco_str, acertou):
+            jogador = self.jogadores_conectados[endereco_str]
+            self.quiz_jogadores_respoderam.append(endereco_str)
+
+            if acertou:
+                self.quiz_pergunta_respondida = True
+                self.jogadores_conectados[endereco_str]['pontos'] += 25
+            else:
+                self.jogadores_conectados[endereco_str]['pontos'] = -5
+                mensagem = f"Você respondeu incorretamente, então perdeu -5 pontos!"
                 self.servidor_socket.sendto(mensagem.encode(), jogador['ip'])
 
+        def timeout_questao(self):
+            pergunta_atual = self.quiz_pergunta_atual
+            time.sleep(10)
+            if pergunta_atual == self.quiz_pergunta_atual:
+                self.quiz_pergunta_respondida = True
+                mensagem = f"Nenhum jogador conseguiu responder em 10seg!"
+                for ip, jogador in self.jogadores_conectados.items():
+                    if ip not in self.quiz_jogadores_respoderam:
+                        self.jogadores_conectados[ip]['pontos'] = -1
+                        mensagem_nao_respondeu = 'Você não respondeu, então perdeu -1 pontos!'
+                        self.servidor_socket.sendto(mensagem_nao_respondeu.encode(), jogador['ip'])
+                    self.servidor_socket.sendto(mensagem.encode(), jogador['ip'])
 
         def get_questao(self):
+            def valor_aleatorio():
+                numeros = []
+                for num in range(0, 5):
+                    valor = randrange(1, 20)
+                    while valor in numeros:
+                        valor = randrange(1, 20)
+                    numeros.append(valor)
+                return numeros
+
+            numeros = valor_aleatorio()
+            contador_numeros = 0
+
             while self.quiz_contador <= 5:
-                def valor_aleatorio():
-                    return randrange(1, 5)
-                valor = valor_aleatorio()
-                self.quiz_pergunta_atual = self.quiz_perguntas[valor]
+                self.quiz_pergunta_atual = self.quiz_perguntas[numeros[contador_numeros]]
+
+                #self.enviar_mensagem("Um jogador respondeu corretamente primeiro!")
                 self.enviar_mensagem(self.quiz_pergunta_atual[0])
 
                 print('Aguardando resposta')
+                self.timeout_questao()
+                print('Finalizou a rodada')
+
                 while not self.quiz_pergunta_respondida:
                     pass
 
                 self.quiz_pergunta_respondida = False
                 #self.aguardar_resposta()
                 self.quiz_contador += 1
+                contador_numeros += 1
 
+            #jogadores_ranking = dict(sorted(self.jogadores_conectados.items(), key=lambda item: item['pontos']))
+            limite_ranking = 3
+            posicao_ranking = 1
+            jogadores_ranking = [{'nome': jogador['nome'], 'pontos': jogador['pontos']} for ip, jogador in self.jogadores_conectados.items()]
+
+            def ordernar_pontos(e):
+                return e['pontos']
+            jogadores_ranking.sort(key=ordernar_pontos, reverse=True)
+
+            print(self.prefixo, 'Ranking do Solu Quiz')
+            for jogador in jogadores_ranking:
+                if posicao_ranking <= limite_ranking:
+                    print(self.prefixo, f"{posicao_ranking}. {jogador['nome']} ({jogador['pontos']} pontos)")
+                else:
+                    break
+                posicao_ranking += 1
             self.quiz_contador = 1
-            pass
 
         def quiz(self):
             self.quiz_iniciado = True
@@ -213,24 +257,30 @@ def main():
                 except:
                     print(self.prefixo, "Um usuário se desconectou" + '\n')
                     continue
+
                 endereco_str = f'{endereco[0]}:{endereco[1]}'
                 mensagem_cliente = str(mensagem.decode())
 
                 if self.jogadores_conectados.get(endereco_str):
+                    if mensagem_cliente == f'{self.prefixo} Sair':
+                        del(self.jogadores_conectados[endereco_str])
                     if mensagem_cliente == f'{self.prefixo} Ativo':
                         self.jogadores_conectados[endereco_str]['status'] = True
                         print(self.prefixo, f'{endereco_str} atualizado com o status: {self.jogadores_conectados[endereco_str]["status"]}' + '\n')
                     if self.quiz_iniciado and mensagem_cliente == self.quiz_pergunta_atual[1]:
-                        self.get_questao_respondida(endereco_str)
+                        self.get_questao_respondida(endereco_str, True)
+                    if self.quiz_iniciado and mensagem_cliente != self.quiz_pergunta_atual[1]:
+                        self.get_questao_respondida(endereco_str, False)
 
                     print(self.prefixo, f'[{endereco[0]}:{endereco[1]}] - "{mensagem_cliente}"' + '\n')
 
                 else:
-                    if not self.servidor_lotado:
-                        if mensagem_cliente == 'desligar':
-                            print(self.prefixo, 'Encerrando servidor.' + '\n')
-                            break
+                    if self.quiz_iniciado:
+                        resposta_servidor = f'{self.prefixo} Competição já iniciada'
+                        self.servidor_socket.sendto(resposta_servidor.encode(), endereco)
+                        continue
 
+                    if not self.servidor_lotado:
                         self.jogadores_conectados[endereco_str] = {"ip": endereco, "status": False, "nome": mensagem_cliente, "pontos": 0}
                         print(self.prefixo, f'{endereco[0]}:{endereco[1]} entrou na competição')
                         print(self.prefixo, f'{len(self.jogadores_conectados)} usuários conectados')
@@ -275,6 +325,7 @@ def main():
 
     servidor = Servidor('127.0.0.1', 8000)
     servidor.iniciar_servidor()
+
 
 if __name__ == '__main__':
     main()
