@@ -246,7 +246,7 @@ def main():
             print(ranking)
             self.partida_encerrada = False
             self.enviar_mensagem(ranking)
-            self.enviar_mensagem(f"{self.prefixo} O jogo acabou, caso deseje entrar novamente, digite seu nome.")
+            self.enviar_mensagem(f"{self.prefixo} O jogo acabou, parabéns pela pontuação!!")
 
 
         def get_quiz_questoes(self):
@@ -304,6 +304,9 @@ def main():
 
         def get_client_response(self, endereco, endereco_str, mensagem_cliente):
             response_status_ativo = f'{self.prefixo} Ativo'
+            if mensagem_cliente == f'{self.prefixo} Sair':
+                self.jogadores_conectados.pop(endereco_str)
+
             if mensagem_cliente == response_status_ativo:
                 self.jogadores_conectados[endereco_str]['status'] = True
                 print(self.prefixo, f'{endereco_str} atualizado com o status: {self.jogadores_conectados[endereco_str]["status"]}' + '\n')
