@@ -401,12 +401,13 @@ DRIBBBLE: https://dribbble.com/shots/4330167-404-Page-Lost-In-Space
         <p style="color: white; font-size: 140px; font-weight: normal; margin: 0; padding: 0;">Olá, bem vindo!</p>
         <p style="color: white; font-size: 24px; font-weight: bolder; margin: 0; padding-bottom: 30px;">Este servidor web foi desenvolvido com Sockets TCP.</p>
         <span>
-            <a href="/" class="btn-go-home" style="display: inline; background-color: #FFCB39; color: black; font-weight: bold; font-size: 12px; margin-right: 10px">
-                Enviar arquivo
-            </a>
-            <a href="arquivos/" class="btn-go-home" style="display: inline;">
-                Ir para pasta de arquivos
-            </a>
+            <form method="post">
+                <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg"><br>
+                <input type="submit" class="btn-go-home" style="display: inline; background-color: #FFCB39; color: black; font-weight: bold; font-size: 12px; margin-right: 10px"/>
+                <a href="files/" class="btn-go-home" style="display: inline;">
+                    Ir para pasta de arquivos
+                </a>
+            </form>
         </span>
     </div>
     <div class="objects">
