@@ -6,7 +6,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 
 class Server:
-    def __init__(self, ip, port, default_dir_path):
+    def __init__(self, ip, port, default_dir_path="files"):
         self.ip = ip
         self.port = port
         self.socket_server = None
@@ -192,7 +192,7 @@ class Server:
 
 
 def main():
-    server = Server("localhost", 80, "teste")
+    server = Server("localhost", 80, "files")
     server.start_server()
 
 
