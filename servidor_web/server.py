@@ -89,7 +89,10 @@ class Server:
             return {"header": header, "body": body}
         except:
             url_decode = urllib.parse.unquote(file_name)
-            return 400 if "%" or "{" in url_decode else 404
+            if "%" in url_decode or "{" in url_decode:
+                return 400
+            else:
+                return None
 
     def convert_bytes_to_kb(self, size_in_bytes):
         return size_in_bytes / 1024
@@ -195,7 +198,7 @@ class Server:
                 else:
                     response = self.get_file(f"{file_name}", file_path)
 
-                    if response == 400 or response == 404:
+                    if response == 400 or response == 404 or not response:
                         response = self.get_response(f"{file_path}", response)
 
             client.send(response['header'].encode('utf-8') + response['body'])
