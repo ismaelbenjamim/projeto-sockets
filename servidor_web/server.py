@@ -1,6 +1,7 @@
 import os
 import threading
 import urllib.parse
+import mimetypes
 from datetime import datetime
 from socket import socket, AF_INET, SOCK_STREAM
 
@@ -61,7 +62,6 @@ class Server:
         return response
 
     def get_mime_type(self, file_path):
-        import mimetypes
         mimetype = mimetypes.guess_type(file_path)
         return mimetype[0]
 
@@ -100,6 +100,16 @@ class Server:
             body = file.read()
             file.close()
             status = self.get_status_code(505)
+        elif error == 400:
+            file = open(f'400.html', 'rb')
+            body = file.read()
+            file.close()
+            status = self.get_status_code(400)
+        elif error == 404:
+            file = open(f'404.html', 'rb')
+            body = file.read()
+            file.close()
+            status = self.get_status_code(404)
         else:
             path_exists = os.path.exists(file_path[1:])
             if path_exists:
@@ -177,13 +187,16 @@ class Server:
             file_name = file_path.lstrip('/')
             file_name = f'index.html' if file_name == '' else file_name
 
-            if not request['http_type'] != "HTTP/1.1":
-                response = self.get_response(f"{file_path}", 505)
+            if request['method'] != "GET":
+                response = self.get_response(f"{file_path}", 400)
             else:
-                response = self.get_file(f"{file_name}", file_path)
+                if not request['http_type'] != "HTTP/1.1":
+                    response = self.get_response(f"{file_path}", 505)
+                else:
+                    response = self.get_file(f"{file_name}", file_path)
 
-                if response == 400 or response == 404:
-                    response = self.get_response(f"{file_path}", response)
+                    if response == 400 or response == 404:
+                        response = self.get_response(f"{file_path}", response)
 
             client.send(response['header'].encode('utf-8') + response['body'])
             break

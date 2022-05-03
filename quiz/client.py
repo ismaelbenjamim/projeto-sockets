@@ -7,6 +7,7 @@ class Client:
         self.cliente_socket = None
         self.servidor = servidor
         self.status = True
+        self.prefixo = "[Solu Quiz]"
 
     def iniciar_cliente(self):
         self.cliente_socket = socket(AF_INET, SOCK_DGRAM)
@@ -21,6 +22,9 @@ class Client:
                     self.request_servidor('[Solu Quiz] Ativo')
 
                 print(f"\n{mensagem_servidor}")
+
+                if mensagem_servidor == '[Solu Quiz] O jogo acabou, matenha-se conectado caso queira ir novamente.':
+                    print(self.prefixo, "Caso queira sair, use /sair:")
             except:
                 pass
 
@@ -31,7 +35,7 @@ class Client:
 
     def enviar_mensagem(self):
         while self.status:
-            mensagem_envio = input("\nDigite sua mensagem: ")
+            mensagem_envio = input("\n")
             if mensagem_envio == '/sair':
                 self.status = False
                 self.request_servidor('[Solu Quiz] Sair')
