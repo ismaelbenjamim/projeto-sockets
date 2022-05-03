@@ -3,34 +3,6 @@ import time
 from random import randrange
 from socket import socket, AF_INET, SOCK_DGRAM
 
-"""
-- Deverá ser desenvolvido um jogo com competições online de perguntas e respostas;
-- Um protocolo da camada de aplicação deverá ser desenvolvido e especificado no relatório;
-o Deverá ter pelo menos uma mensagem de requisição e pelo menos uma mensagem de
-resposta;
-- O protocolo de transporte UDP deverá ser utilizado;
-- Um servidor UDP deverá gerenciar as competições;
-- Até 5 clientes UDP poderão participar de uma competição;
-- Após a competição ser iniciada, não deverá ser permitido o ingresso de novos participantes;
-- Cada competição terá 5 rodadas de perguntas e respostas;
-- O servidor deverá ter um arquivo de texto contendo pelo menos 20 tuplas de perguntas e
-respostas;
-    - As respostas deverão ser compostas por uma única palavra, com caracteres minúsculos
-    - O tema do Quiz ficará a critério da equipe
-- O servidor irá escolher aleatoriamente uma tupla de pergunta/resposta que será utilizada na
-rodada;
-- Uma mesma competição não poderá ter duas tuplas repetidas;
-- Cada rodada será encerrada quando algum participante acertar a resposta ou atingir uma
-duração máxima de 10 segundos;
-- Pontuação de cada rodada:
-    - Cada resposta errada: -5 pontos
-    - Sem resposta: -1 ponto
-    - Resposta correta: 25 pontos
-- Após uma competição ser encerrada, um ranking com a pontuação é divulgado e uma nova
-competição poderá ser iniciada.
-"""
-
-
 def main():
     class Servidor:
         def __init__(self, ip, porta):
